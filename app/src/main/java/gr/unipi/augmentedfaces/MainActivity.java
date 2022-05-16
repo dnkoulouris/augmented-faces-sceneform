@@ -1,4 +1,5 @@
 package gr.unipi.augmentedfaces;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -51,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        loadModels();
-        loadTextures();
+        loadModel();
+        loadTexture();
     }
 
     public void onAttachFragment(@NonNull FragmentManager fragmentManager, @NonNull Fragment fragment) {
@@ -62,14 +63,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     public void onViewCreated(ArSceneView arSceneView) {
         this.arSceneView = arSceneView;
-
-        // This is important to make sure that the camera stream renders first so that
-        // the face mesh occlusion works correctly.
         arSceneView.setCameraStreamRenderPriority(Renderable.RENDER_PRIORITY_FIRST);
-
-        // Check for face detections
         arFragment.setOnAugmentedFaceUpdateListener(this::onAugmentedFaceTrackingUpdate);
     }
 
@@ -84,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void loadModels() {
+    private void loadModel() {
         loaders.add(ModelRenderable.builder()
                 .setSource(this, Uri.parse("models/fox.glb"))
                 .setIsFilamentGltf(true)
@@ -96,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 }));
     }
 
-    private void loadTextures() {
+    private void loadTexture() {
         loaders.add(Texture.builder()
                 .setSource(this, Uri.parse("textures/freckles.png"))
                 .setUsage(Texture.Usage.COLOR_MAP)
@@ -112,22 +109,16 @@ public class MainActivity extends AppCompatActivity {
         if (faceModel == null || faceTexture == null) {
             return;
         }
-
         AugmentedFaceNode existingFaceNode = facesNodes.get(augmentedFace);
-
         switch (augmentedFace.getTrackingState()) {
             case TRACKING:
                 if (existingFaceNode == null) {
                     AugmentedFaceNode faceNode = new AugmentedFaceNode(augmentedFace);
-
                     RenderableInstance modelInstance = faceNode.setFaceRegionsRenderable(faceModel);
                     modelInstance.setShadowCaster(false);
                     modelInstance.setShadowReceiver(true);
-
                     faceNode.setFaceMeshTexture(faceTexture);
-
                     arSceneView.getScene().addChild(faceNode);
-
                     facesNodes.put(augmentedFace, faceNode);
                 }
                 break;
